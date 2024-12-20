@@ -22,23 +22,6 @@ import {
   Layout,
 } from "./types";
 
-// More the HORIZONTAL_TILT_FACTOR, more the images positionend to the right side of the screen
-// const HORIZONTAL_TILT_FACTOR = 0.99
-const HORIZONTAL_TILT_FACTOR = 0.5;
-// More the ASPECT_RATIO_FACTOR, more the images positionend to make the layout more horizontal
-const ASPECT_RATIO_FACTOR = 1.9;
-
-const fitClamped = (val: number, min: number, max: number, minOut: number, maxOut: number) => {
-  return (val - min) / (max - min) * (maxOut - minOut) + minOut;
-};
-
-/**
- * Converts a value to a tilted percentage value between -1 and 1.
- * @param {number} val - The input value to be converted.
- * @returns {number} The converted value as a tilted percentage between -1 and 1.
- */
-const toTiltPercent = (val: number): number => fitClamped(val, 0, 1, -1, 1);
-
 /**
  * Calculates the sides of a given box.
  * @param {PlacedBox} box - The box for which to calculate the sides.
@@ -88,9 +71,7 @@ export const placeBoxOnSide = (
     case Direction.Bottom:
       return makePlacedBoxAndAvailableSpace(
         [
-          BR[0] -
-            W +
-            Math.round(size[0] * toTiltPercent(HORIZONTAL_TILT_FACTOR)),
+          BR[0] - W,
           TL[1],
         ],
         size,
@@ -105,9 +86,7 @@ export const placeBoxOnSide = (
     case Direction.Top:
       return makePlacedBoxAndAvailableSpace(
         [
-          BR[0] -
-            W +
-            Math.round(size[0] * toTiltPercent(HORIZONTAL_TILT_FACTOR)),
+          BR[0] - W,
           TL[1] - H,
         ],
         size,
