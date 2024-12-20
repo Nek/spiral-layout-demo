@@ -10,8 +10,13 @@
     "test": "vitest"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.9.3",
+    "preact": "^10.25.3",
     "typescript": "~5.7.2",
     "vite": "^6.0.4",
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.0.0"
   }
 }
