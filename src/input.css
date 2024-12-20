@@ -2,25 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@layer base {
+  :root {
+    @apply font-sans font-normal antialiased;
+    color-scheme: light dark;
+  }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-
-html, body {
-  background-color: #242424;
-  margin: 0;
-  padding: 0;
+  html, body {
+    @apply bg-[#242424] text-white/90 m-0 p-0;
+  }
 }
 
-#app {
-  text-align: center;
+@layer components {
+  #app {
+    @apply text-center;
+  }
 }
-
-// Convert css to tailwindcss AI!
