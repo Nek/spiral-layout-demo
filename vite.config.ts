@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import preact from '@preact/preset-vite'
+const { defineConfig } = require('vite')
+const preact = require('@preact/preset-vite')
 
-export default defineConfig({
+module.exports = defineConfig({
   optimizeDeps: {
     include: ['preact', 'preact/hooks']
   },
