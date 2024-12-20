@@ -1,4 +1,4 @@
-import { createSignal, createMemo, onMount, For } from 'solid-js'
+import { createSignal, createMemo, onMount, For, onCleanup } from 'solid-js'
 import { placeBox } from './Layout'
 import { BoundingBox, Direction, type Box, type PlacedBox } from './Layout/types'
 
@@ -19,8 +19,7 @@ export function App() {
   const [layout, setLayout] = createSignal<PlacedBox[]>([])
   const [bounds, setBounds] = createSignal<BoundingBox>([[0, 0], [0, 0]])
   const [lastDir, setLastDir] = createSignal(Direction.Right)
-  const [maxScrollTop, setMaxScrollTop] = createSignal(0)
-  const [maxScrollLeft, setMaxScrollLeft] = createSignal(0)
+  const [zoom, setZoom] = createSignal(1)
 
   const size = createMemo(() => {
     const currentBounds = bounds()
@@ -44,13 +43,22 @@ export function App() {
     setBounds(newBounds)
   }
 
+  const handleWheel = (e: WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? 0.9 : 1.1
+    setZoom(z => Math.max(0.0001, Math.min(1, z * delta)))
+  }
+
   onMount(() => {
     document.addEventListener('click', addBox)
+    document.addEventListener('wheel', handleWheel, { passive: false })
     const interval = setInterval(addBox, 1000)
-    return () => {
+
+    onCleanup(() => {
       document.removeEventListener('click', addBox)
+      document.removeEventListener('wheel', handleWheel)
       clearInterval(interval)
-    }
+    })
   })
 
   return (
@@ -59,7 +67,8 @@ export function App() {
         class="relative m-auto mt-2 mb-2 select-none -translate-x-1/2 -translate-y-1/2"
         style={{
           width: `${size()[0]}px`,
-          height: `${size()[1]}px`
+          height: `${size()[1]}px`,
+          transform: `translate(-50%, -50%) scale(${zoom()})`
         }}
       >
         <For each={layout()}>
