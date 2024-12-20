@@ -1,21 +1,12 @@
 import { defineConfig } from 'vite'
-import preact from '@preact/preset-vite'
+import solid from 'vite-plugin-solid'
 
 export default defineConfig({
-  optimizeDeps: {
-    include: ['preact', 'preact/hooks']
-  },
-  plugins: [preact()],
+  plugins: [solid()],
   server: {
     open: true
   },
   build: {
     sourcemap: true
-  },
-  resolve: {
-    alias: {
-      'react': 'preact/compat',
-      'react-dom': 'preact/compat'
-    }
   }
 })

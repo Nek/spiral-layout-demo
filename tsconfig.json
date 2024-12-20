@@ -14,8 +14,8 @@
     "noEmit": true,
 
     /* JSX */
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
 
     /* Linting */
     "strict": true,
