@@ -1,73 +1,72 @@
-import { useEffect, useRef, useState } from 'preact/hooks'
-import placeAllBoxes from './Layout'
-import type { Box } from './Layout/types'
+import { placeBox } from './Layout'
+import { BoundingBox, Direction, type Box, type PlacedBox } from './Layout/types'
+import { computed, signal } from "@preact/signals"
 
-const DEMO_BOXES: Box[] = [
-  { id: '1', size: [100, 100] },
-  { id: '2', size: [150, 80] },
-  { id: '3', size: [120, 90] },
-  { id: '4', size: [80, 130] },
-  { id: '5', size: [110, 110] },
+const layout = signal<PlacedBox[]>([])
+const bounds = signal<BoundingBox>([[0, 0], [0, 0]])
+const lastDir = signal(Direction.Right)
+
+const size = computed(() => {
+  return [
+    bounds.value[1][0] - bounds.value[0][0],
+    bounds.value[1][1] - bounds.value[0][1]
+  ]
+});
+
+const DEMO_BOXES: Partial<Box>[] = [
+  { size: [100, 100] },
+  { size: [150, 80] },
+  { size: [120, 90] },
+  { size: [80, 130] },
+  { size: [110, 110] },
+  { size: [50, 50] },
+  { size: [75, 35] },
+  { size: [20, 20] },
+  { size: [200, 20] },
+  { size: [20, 200] },
 ]
 
+const addBox = () => {
+  const box = DEMO_BOXES[Math.floor(Math.random() * DEMO_BOXES.length)]
+  box.id = (layout.value.length).toString()
+  const { lastDir: newLastDir, placedBox, bounds: newBounds } = placeBox(box as Box, layout.value, lastDir.value, bounds.value as BoundingBox)
+  layout.value = [...layout.value, placedBox]
+  lastDir.value = newLastDir
+  bounds.value = newBounds
+}
+
+document.addEventListener('click', () => {
+  addBox()
+})
+
+setInterval(() => {
+  addBox()
+}, 1000)
+
 export function App() {
-  const [boxes, setBoxes] = useState<Box[]>([])
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setBoxes(prev => {
-        if (prev.length >= DEMO_BOXES.length) return prev
-        return [...prev, DEMO_BOXES[prev.length]]
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  const [layout, bounds] = placeAllBoxes(boxes)
-
-  const [width, height] = [
-    bounds[1][0] - bounds[0][0],
-    bounds[1][1] - bounds[0][1]
-  ]
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Spiral Layout Demo</h1>
       <div 
-        ref={containerRef}
-        style={{ 
-          position: 'relative',
-          width: `${width}px`,
-          height: `${height}px`,
-          margin: '2rem auto'
-        }}
+        className={'relative m-auto mt-2 mb-2 ' + `w-[${size.value[0]}px] h-[${size.value[1]}px] `}
       >
-        {layout.map(box => (
-          <div
-            key={box.id}
-            style={{
-              position: 'absolute',
-              left: `${box.position[0] - bounds[0][0]}px`,
-              top: `${box.position[1] - bounds[0][1]}px`,
-              width: `${box.size[0]}px`,
-              height: `${box.size[1]}px`,
-              background: `hsl(${parseInt(box.id) * 60}, 70%, 60%)`,
-              border: '2px solid white',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {box.id}
-          </div>
-        ))}
+        {layout.value.map(box => {
+          return (
+            <div
+              key={box.id}
+              className="absolute flex items-center justify-center text-white font-bold text-lg font-sans transition-all duration-750 ease-in-out"
+              style={{
+                left: `${box.position[0] - bounds.value[0][0]}px`,
+                top: `${box.position[1] - bounds.value[0][1]}px`,
+                width: `${box.size[0]}px`,
+                height: `${box.size[1]}px`,
+                background: `hsl(${parseInt(box.id) * 60}, 70%, 60%)`,
+              }}
+            >
+              {box.id}
+            </div>
+          )
+        })}
       </div>
     </div>
   )

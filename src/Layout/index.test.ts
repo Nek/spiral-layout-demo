@@ -174,8 +174,9 @@ describe("Layout", () => {
         lastDir: resultLastDir,
         placedBox,
         bounds: resultBounds,
+        layout: resultLayout,
       } = placeBox({ size, id }, layout, lastDir, bounds);
-      expect(layout.length).toBe(1);
+      expect(resultLayout.length).toBe(1);
       expect(placedBox.id).toBe(id);
       expect(placedBox.position).toEqual([0, 0]);
       expect(resultLastDir).toBe(Direction.Right);
@@ -212,9 +213,10 @@ describe("Layout", () => {
         lastDir: resultLastDir,
         placedBox,
         bounds: resultBounds,
+        layout: resultLayout,
       } = placeBox({ size, id }, layout, lastDir, bounds);
 
-      expect(layout.length).toBe(2);
+      expect(resultLayout.length).toBe(2);
       expect(placedBox.id).toBe(id);
       expect(placedBox.position).toEqual([10, 0]);
       expect(resultLastDir).toBe(Direction.Right);
@@ -262,9 +264,10 @@ describe("Layout", () => {
         lastDir: resultLastDir,
         placedBox,
         bounds: resultBounds,
+        layout: resultLayout,
       } = placeBox({ size, id }, layout, lastDir, bounds);
 
-      expect(layout.length).toBe(3);
+      expect(resultLayout.length).toBe(3);
       expect(placedBox.id).toBe(id);
       // expect(placedBox.position).toEqual([5, 10]);
       // expect(placedBox.sidesAvailable.T).toBeFalsy();
@@ -329,9 +332,10 @@ describe("Layout", () => {
         lastDir: resultLastDir,
         placedBox,
         bounds: resultBounds,
+        layout: resultLayout,
       } = placeBox({ size, id }, layout, lastDir, bounds);
 
-      expect(layout.length).toBe(4);
+      expect(resultLayout.length).toBe(4);
       expect(placedBox.id).toBe(id);
       expect(placedBox.position).toEqual([-5, 5]);
       expect(resultLastDir).toBe(Direction.Left);
@@ -401,9 +405,10 @@ describe("Layout", () => {
         lastDir: resultLastDir,
         placedBox,
         bounds: resultBounds,
+        layout: resultLayout,
       } = placeBox({ size, id }, layout, lastDir, bounds);
 
-      expect(layout.length).toBe(5);
+      expect(resultLayout.length).toBe(5);
       expect(placedBox.id).toBe(id);
       expect(placedBox.position).toEqual([15, 0]);
       expect(resultLastDir).toBe(Direction.Right);

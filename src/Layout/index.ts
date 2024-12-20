@@ -7,8 +7,8 @@ const testRectRect = (
   return !(x2 > x1 + w1 || x2 + w2 < x1 || y2 > y1 + h1 || y2 + h2 < y1);
 };
 
-const add2 = (a: Vec, b: Vec) => [a[0] + b[0], a[1] + b[1]];
-const sub2 = (a: Vec, b: Vec) => [a[0] - b[0], a[1] - b[1]];
+const add2 = (a: Vec, b: Vec) => [a[0] + b[0], a[1] + b[1]] as Vec;
+const sub2 = (a: Vec, b: Vec) => [a[0] - b[0], a[1] - b[1]] as Vec;
 
 import {
   PlacedBox,
@@ -144,10 +144,11 @@ export const placeBox = (
   layout: PlacedBox[],
   lastDir: Direction,
   bounds: BoundingBox,
-): { lastDir: Direction; placedBox: PlacedBox; bounds: [Vec, Vec] } => {
+): { lastDir: Direction; placedBox: PlacedBox; bounds: [Vec, Vec], layout: PlacedBox[] } => {
+  let newLayout = layout.slice()
   if (layout.length === 0) {
     const placedBox = makePlacedBox(lastDir, [0, 0], box.size, box.id);
-    layout.push(placedBox);
+    newLayout.push(placedBox);
 
     const [tlx, tly] = placedBox.position;
     const [brx, bry] = add2(placedBox.size, placedBox.position);
@@ -159,6 +160,7 @@ export const placeBox = (
         [tlx, tly],
         [brx, bry],
       ],
+      layout: newLayout,
     };
   }
 
@@ -188,14 +190,14 @@ export const placeBox = (
         }
       }
       placedBox.sidesAvailable[dir] = false;
-      layout.push(newBox);
+      newLayout.push(newBox);
       const [tlx, tly] = newBox.position;
       const [brx, bry] = add2(newBox.size, newBox.position);
       const layoutBounds: [Vec, Vec] = [
         [Math.min(tlx, bounds[0][0]), Math.min(tly, bounds[0][1])],
         [Math.max(brx, bounds[1][0]), Math.max(bry, bounds[1][1])],
       ];
-      return { lastDir: dir, placedBox: newBox, bounds: layoutBounds };
+      return { lastDir: dir, placedBox: newBox, bounds: layoutBounds, layout: newLayout };
     }
   }
   throw new Error("Can't add box.");
