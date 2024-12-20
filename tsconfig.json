@@ -14,9 +14,7 @@
     "noEmit": true,
 
     /* JSX */
-    "jsx": "preserve",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment",
+    "jsx": "react-jsx",
     "jsxImportSource": "preact",
 
     /* Linting */
