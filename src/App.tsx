@@ -19,6 +19,8 @@ export function App() {
   const [layout, setLayout] = createSignal<PlacedBox[]>([])
   const [bounds, setBounds] = createSignal<BoundingBox>([[0, 0], [0, 0]])
   const [lastDir, setLastDir] = createSignal(Direction.Right)
+  const [maxScrollTop, setMaxScrollTop] = createSignal(0)
+  const [maxScrollLeft, setMaxScrollLeft] = createSignal(0)
 
   const size = createMemo(() => {
     const currentBounds = bounds()
@@ -52,9 +54,9 @@ export function App() {
   })
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div class="p-2 left-1/2 top-1/2 absolute scroll-none">
       <div 
-        class="relative m-auto mt-2 mb-2"
+        class="relative m-auto mt-2 mb-2 select-none -translate-x-1/2 -translate-y-1/2"
         style={{
           width: `${size()[0]}px`,
           height: `${size()[1]}px`
