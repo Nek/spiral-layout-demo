@@ -1,6 +1,6 @@
 import { createSignal, createMemo, onMount, For, onCleanup } from 'solid-js'
 import { placeBox } from './Layout'
-import { BoundingBox, Direction, type Box, type PlacedBox } from './Layout/types'
+import { BoundingBox, Direction, Layout, type Box } from './Layout/types'
 
 const DEMO_BOXES: Partial<Box>[] = [
   { size: [100, 100] },
@@ -16,7 +16,10 @@ const DEMO_BOXES: Partial<Box>[] = [
 ]
 
 export function App() {
-  const [layout, setLayout] = createSignal<PlacedBox[]>([])
+  const [layout, setLayout] = createSignal<Layout>({
+    placedBoxes: [],
+    availableSpaces: new Map(),
+  })
   const [bounds, setBounds] = createSignal<BoundingBox>([[0, 0], [0, 0]])
   const [lastDir, setLastDir] = createSignal(Direction.Right)
   const [zoom, setZoom] = createSignal(1)
@@ -31,14 +34,13 @@ export function App() {
 
   const addBox = () => {
     const box = DEMO_BOXES[Math.floor(Math.random() * DEMO_BOXES.length)]
-    box.id = layout().length.toString()
-    const { lastDir: newLastDir, placedBox, bounds: newBounds } = placeBox(
+    const { lastDir: newLastDir, layout: newLayout, bounds: newBounds } = placeBox(
       box as Box,
       layout(),
       lastDir(),
       bounds() as BoundingBox
     )
-    setLayout([...layout(), placedBox])
+    setLayout(newLayout)
     setLastDir(newLastDir)
     setBounds(newBounds)
   }
@@ -46,7 +48,7 @@ export function App() {
   const handleWheel = (e: WheelEvent) => {
     e.preventDefault()
     const delta = e.deltaY > 0 ? 0.9 : 1.1
-    setZoom(z => Math.max(0.0001, Math.min(1, z * delta)))
+    setZoom(z => Math.max(0.0001, Math.min(3, z * delta)))
   }
 
   onMount(() => {
@@ -62,17 +64,17 @@ export function App() {
   })
 
   return (
-    <div class="p-2 left-1/2 top-1/2 absolute scroll-none">
+    <div class="p-2 left-1/2 top-1/2 absolute transition-all duration-750 ease-in-out">
       <div 
-        class="relative m-auto mt-2 mb-2 select-none -translate-x-1/2 -translate-y-1/2"
+        class="relative m-auto mt-2 mb-2 select-none -translate-x-1/2 -translate-y-1/2 transition-all duration-750 ease-in-out"
         style={{
           width: `${size()[0]}px`,
           height: `${size()[1]}px`,
           transform: `translate(-50%, -50%) scale(${zoom()})`
         }}
       >
-        <For each={layout()}>
-          {(box) => (
+        <For each={layout().placedBoxes}>
+          {(box, index) => (
             <div
               class="absolute flex items-center justify-center text-white font-bold text-lg font-sans transition-all duration-750 ease-in-out"
               style={{
@@ -80,10 +82,10 @@ export function App() {
                 top: `${box.position[1] - bounds()[0][1]}px`,
                 width: `${box.size[0]}px`,
                 height: `${box.size[1]}px`,
-                background: `hsl(${parseInt(box.id) * 60}, 70%, 60%)`
+                background: `hsl(${index() * 60}, 70%, 60%)`
               }}
             >
-              {box.id}
+              {index()}
             </div>
           )}
         </For>

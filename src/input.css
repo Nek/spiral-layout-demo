@@ -10,6 +10,8 @@
 
   html, body {
     @apply bg-[#242424] text-white/90 m-0 p-0;
+    scroll-behavior: smooth;
+    overflow: hidden;
   }
 }
 

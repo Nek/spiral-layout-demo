@@ -10,16 +10,24 @@ export enum Direction {
 }
 export type Side = [Vec, Vec];
 
-export type Box = {
+export interface Box {
   size: Size;
-  id: string;
-};
+}
 
 export type BoundingBox = [Vec, Vec];
 
-export type PlacedBox = {
+export interface PlacedBox extends Box {
   position: Vec;
-  size: Size;
-  sidesAvailable: { [dir in Direction]: boolean };
-  id: string;
-};
+}
+
+export interface AvailableSpace {
+  [Direction.Top]: boolean;
+  [Direction.Right]: boolean;
+  [Direction.Bottom]: boolean;
+  [Direction.Left]: boolean;
+}
+
+export interface Layout {
+  placedBoxes: PlacedBox[];
+  availableSpaces: Map<number, AvailableSpace>;
+}

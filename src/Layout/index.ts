@@ -18,6 +18,8 @@ import {
   Box,
   BoundingBox,
   Vec,
+  AvailableSpace,
+  Layout,
 } from "./types";
 
 // More the HORIZONTAL_TILT_FACTOR, more the images positionend to the right side of the screen
@@ -45,13 +47,14 @@ const toTiltPercent = (val: number): number => fitClamped(val, 0, 1, -1, 1);
  */
 export const calculateSides = (
   box: PlacedBox,
+  availableSpace: AvailableSpace,
   lastDir: Direction,
 ): [Direction, Side | undefined][] => {
   const res: [Direction, Side | undefined][] = [
-    [Direction.Right, calculateSide(box, Direction.Right)],
-    [Direction.Bottom, calculateSide(box, Direction.Bottom)],
-    [Direction.Left, calculateSide(box, Direction.Left)],
-    [Direction.Top, calculateSide(box, Direction.Top)],
+    [Direction.Right, calculateSide(box, availableSpace, Direction.Right)],
+    [Direction.Bottom, calculateSide(box, availableSpace, Direction.Bottom)],
+    [Direction.Left, calculateSide(box, availableSpace, Direction.Left)],
+    [Direction.Top, calculateSide(box, availableSpace, Direction.Top)],
   ];
   while (res[0][0] !== lastDir) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -71,32 +74,19 @@ export const calculateSides = (
  *
  * @returns {PlacedBox} A new `PlacedBox` with the specified attributes.
  */
-export const makePlacedBoxOnSide = (
+export const placeBoxOnSide = (
   side: Side,
   dir: Direction,
   size: Size,
-  id: string,
-  currentBounds: BoundingBox,
-): PlacedBox => {
+): [PlacedBox, AvailableSpace] => {
   const [TL, BR] = side;
   const [W, H] = size;
 
-  // The block tries to make the layout to keep the specified aspect ratio
-  // by forcing the images to be positioned on the right or left side of the layout
-  if (getBoundingBoxAspectRatio(currentBounds) < ASPECT_RATIO_FACTOR) {
-    if (dir === Direction.Top) {
-      dir = Direction.Right;
-    } else if (dir === Direction.Bottom) {
-      dir = Direction.Left;
-    }
-  }
-
   switch (dir) {
     case Direction.Right:
-      return makePlacedBox(Direction.Right, TL, size, id);
+      return makePlacedBoxAndAvailableSpace(TL, size, dir);
     case Direction.Bottom:
-      return makePlacedBox(
-        Direction.Bottom,
+      return makePlacedBoxAndAvailableSpace(
         [
           BR[0] -
             W +
@@ -104,13 +94,16 @@ export const makePlacedBoxOnSide = (
           TL[1],
         ],
         size,
-        id,
+        dir,
       );
     case Direction.Left:
-      return makePlacedBox(Direction.Left, [TL[0] - W, BR[1] - H], size, id);
+      return makePlacedBoxAndAvailableSpace(
+        [TL[0] - W, BR[1] - H],
+        size,
+        dir,
+      );
     case Direction.Top:
-      return makePlacedBox(
-        Direction.Top,
+      return makePlacedBoxAndAvailableSpace(
         [
           BR[0] -
             W +
@@ -118,15 +111,13 @@ export const makePlacedBoxOnSide = (
           TL[1] - H,
         ],
         size,
-        id,
+        dir,
       );
   }
 };
 
-const getBoundingBoxAspectRatio = (boundingBox: BoundingBox) => {
-  const [tl, br] = boundingBox;
-  const [w, h] = sub2(br, tl);
-  return w / h;
+const isBusy = (availableSpace: AvailableSpace) => {
+  return Object.values(availableSpace).every(v => v === false);
 };
 
 /**
@@ -141,21 +132,26 @@ const getBoundingBoxAspectRatio = (boundingBox: BoundingBox) => {
  */
 export const placeBox = (
   box: Box,
-  layout: PlacedBox[],
+  layout: Layout,
   lastDir: Direction,
   bounds: BoundingBox,
-): { lastDir: Direction; placedBox: PlacedBox; bounds: [Vec, Vec], layout: PlacedBox[] } => {
-  let newLayout = layout.slice()
-  if (layout.length === 0) {
-    const placedBox = makePlacedBox(lastDir, [0, 0], box.size, box.id);
-    newLayout.push(placedBox);
+): { lastDir: Direction; bounds: [Vec, Vec], layout: Layout } => {
+  
+  let newLayout = {
+    placedBoxes: layout.placedBoxes.slice(),
+    availableSpaces: new Map(layout.availableSpaces),
+  }
+  if (layout.placedBoxes.length === 0) {
+    const id = layout.placedBoxes.length
+    const [placedBox, availableSpace] = makePlacedBoxAndAvailableSpace([0, 0], box.size);
+    newLayout.placedBoxes.push(placedBox);
+    newLayout.availableSpaces.set(id, availableSpace);
 
     const [tlx, tly] = placedBox.position;
     const [brx, bry] = add2(placedBox.size, placedBox.position);
 
     return {
       lastDir,
-      placedBox: placedBox,
       bounds: [
         [tlx, tly],
         [brx, bry],
@@ -164,21 +160,23 @@ export const placeBox = (
     };
   }
 
-  for (const placedBox of layout) {
-    const sides = calculateSides(placedBox, lastDir);
+  for (const [id, availableSpace] of newLayout.availableSpaces) {
+    if (isBusy(availableSpace)) {
+      newLayout.availableSpaces.delete(id);
+      continue;
+    }
+    const placedBox = newLayout.placedBoxes[id];
+    const sides = calculateSides(placedBox, availableSpace, lastDir);
     loopSides: for (const [dir, side] of sides) {
       if (side === undefined) continue;
 
-      // current bounds is important to make the layout to keep the specified aspect ratio
-      const newBox = makePlacedBoxOnSide(
+      const [newBox, newAvailableSpace] = placeBoxOnSide(
         side,
         dir as Direction,
         box.size,
-        box.id,
-        bounds,
       );
 
-      for (const collBox of layout) {
+      for (const collBox of layout.placedBoxes) {
         const collided = testRectRect(
           add2(newBox.position, [1, 1]),
           sub2(newBox.size, [1, 1]),
@@ -189,15 +187,18 @@ export const placeBox = (
           continue loopSides;
         }
       }
-      placedBox.sidesAvailable[dir] = false;
-      newLayout.push(newBox);
+      availableSpace[dir] = false;
+      newLayout.placedBoxes.push(newBox);
+      const newId = newLayout.placedBoxes.length - 1;
+      newLayout.availableSpaces.set(newId, newAvailableSpace);
+
       const [tlx, tly] = newBox.position;
       const [brx, bry] = add2(newBox.size, newBox.position);
       const layoutBounds: [Vec, Vec] = [
         [Math.min(tlx, bounds[0][0]), Math.min(tly, bounds[0][1])],
         [Math.max(brx, bounds[1][0]), Math.max(bry, bounds[1][1])],
       ];
-      return { lastDir: dir, placedBox: newBox, bounds: layoutBounds, layout: newLayout };
+      return { lastDir: dir, bounds: layoutBounds, layout: newLayout };
     }
   }
   throw new Error("Can't add box.");
@@ -223,46 +224,19 @@ const oppositeDirection = (dir: Direction) => {
   }
 };
 
-export const makePlacedBox = (
-  dir: Direction,
+export const makePlacedBoxAndAvailableSpace = (
   position: Vec,
   size: Vec,
-  id: string,
-): PlacedBox => {
-  return {
+  dir?: Direction,
+): [PlacedBox, AvailableSpace] => {
+  const availableSpace = ALL_SIDES_AVAILABLE();
+  if (dir) {
+    availableSpace[oppositeDirection(dir)] = false;
+  }
+  return [{
     position,
     size,
-    sidesAvailable: {
-      ...ALL_SIDES_AVAILABLE(),
-      [oppositeDirection(dir)]: false,
-    },
-    id,
-  };
-};
-
-export const connectBoxes = (
-  parent: PlacedBox,
-  child: PlacedBox,
-  direction: Direction,
-) => {
-  switch (direction) {
-    case Direction.Top:
-      parent.sidesAvailable[Direction.Top] = false;
-      child.sidesAvailable[Direction.Bottom] = false;
-      break;
-    case Direction.Right:
-      parent.sidesAvailable[Direction.Right] = false;
-      child.sidesAvailable[Direction.Left] = false;
-      break;
-    case Direction.Bottom:
-      parent.sidesAvailable[Direction.Bottom] = false;
-      child.sidesAvailable[Direction.Top] = false;
-      break;
-    case Direction.Left:
-      parent.sidesAvailable[Direction.Left] = false;
-      child.sidesAvailable[Direction.Right] = false;
-      break;
-  }
+  }, availableSpace];
 };
 
 /**
@@ -274,9 +248,10 @@ export const connectBoxes = (
  */
 export const calculateSide = (
   placedBox: PlacedBox,
+  availableSpace: AvailableSpace,
   direction: Direction,
 ): Side | undefined => {
-  if (!placedBox.sidesAvailable[direction]) return;
+  if (!availableSpace[direction]) return;
   const { position, size } = placedBox;
   switch (direction) {
     case Direction.Right:
@@ -295,36 +270,3 @@ export const calculateSide = (
       return [position, [position[0] + size[0], position[1]]];
   }
 };
-
-type Bounds = [Vec, Vec];
-
-/**
- *  Places all the boxes in the given array into a layout.
- * @param {Box[]} boxes - The boxes to place into the layout.
- * @returns {[PlacedBox[], Bounds]} An array containing the placed boxes
- * and the bounds([topLeft, bottomRight]) of the layout.
- */
-const placeAllBoxes = (boxes: Box[]): [PlacedBox[], Bounds] => {
-  const layout: PlacedBox[] = [];
-  let layoutBounds: [Vec, Vec] = [
-    [0, 0],
-    [0, 0],
-  ];
-  let lastDir: Direction = Direction.Right;
-  let box = boxes.shift();
-  while (box) {
-    const { lastDir: newLastDir, bounds } = placeBox(
-      box,
-      layout,
-      lastDir,
-      layoutBounds,
-    );
-    layoutBounds = bounds;
-    lastDir = newLastDir;
-    box = boxes.shift();
-  }
-
-  return [layout, layoutBounds];
-};
-
-export default placeAllBoxes;
