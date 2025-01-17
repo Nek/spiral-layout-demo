@@ -2,15 +2,13 @@
   "name": "spiral-layout-demo",
   "private": true,
   "version": "1.0.0",
-  "description": "A demo application showcasing spiral layout algorithms using SolidJS",
+  "description": "A demo application showcasing spiral layout algorithm using SolidJS for rendering",
   "type": "module",
-  "author": {
-    "name": "Spiral Layout Demo Team"
-  },
+  "author": "Nikita (Anatolievich) Dudnik <nikdudnik@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/username/spiral-layout-demo"
+    "url": "https://github.com/Nek/spiral-layout-demo"
   },
   "scripts": {
     "dev": "vite",
