@@ -10,6 +10,10 @@
     "type": "git",
     "url": "https://github.com/Nek/spiral-layout-demo"
   },
+  "bugs": {
+    "url": "https://github.com/Nek/spiral-layout-demo/issues"
+  },
+  "homepage": "https://github.com/Nek/spiral-layout-demo#readme",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
