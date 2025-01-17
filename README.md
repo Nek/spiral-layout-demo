@@ -4,7 +4,7 @@ A demo application showcasing a spiral layout algorithm with SolidJS for renderi
 
 Deployed demo (https://spiral-layout.netlify.app/)[https://spiral-layout.netlify.app/].
 
-![Spiral Layout Preview](preview.png){width=300}
+![Spiral Layout Preview](preview.png)
 
 ## Usage
 
