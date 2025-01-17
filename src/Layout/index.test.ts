@@ -438,7 +438,6 @@ describe("Layout", () => {
       ];
 
       const size = [5, 5] as Vec;
-      const id = "2";
       const lastDir: Direction = Direction.Right;
       const bounds: [Vec, Vec] = [
         [0, 0],
@@ -446,7 +445,7 @@ describe("Layout", () => {
       ];
 
       expect(() => {
-        placeBox({ size, id }, layout, lastDir, bounds);
+        placeBox({ size }, layout, lastDir, bounds);
       }).toThrow("Can't add box.");
     });
   });
