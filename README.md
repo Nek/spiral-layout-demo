@@ -2,7 +2,7 @@
 
 A demo application showcasing a spiral layout algorithm with SolidJS for rendering. The algorithm places boxes in a spiral pattern, maintaining efficient space usage while avoiding overlaps. The new boxes can be added progressively making it a good fit for streamable content.
 
-Deployed demo (https://spiral-layout.netlify.app/)[https://spiral-layout.netlify.app/].
+Deployed demo (https://spiral-layout.netlify.app)[https://spiral-layout.netlify.app].
 
 ![Spiral Layout Preview](preview.png)
 
